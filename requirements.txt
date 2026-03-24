@@ -14,3 +14,6 @@ aiohttp==3.8.3
 # Utilities
 numpy==1.24.1
 cryptography==38.0.4
+
+# Google Cloud Library
+google-cloud-aiplatform
