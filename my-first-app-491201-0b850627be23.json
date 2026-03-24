@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "my-first-app-491201",
+  "private_key_id": "0b850627be23f1e6dd8504dc68ba0610a4c42565",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCwsjN6EQy99TE4\nvZRF7lD8oiSWkKKqTOb+0YW/Hi3zYnC518WMT/EuhIdCS9kiVYiNt16VC81Mak/a\nE2ids5dcDghcxOInkP7u65VDWGStnhFR+GVXQnJ65E8eeEFKvw0QWxKz/guFAtBt\n9y7hzynJGMOdri1JuJsV3i+UBxPrfC5w5jOtYl/JwAjxgZdZmeErv/3QBaDCAxYL\nOZD9AShIzkcZzxEZEAIy2x9zn+sBdtCUXFyADvg+0ScotAxM/1efLCnjbstzalrU\nhi0JAAo2uyJzLnSplfC1MsbKQtptWJ/KalCosCJLz6k/Y0505GDz5mHFav63q1nF\ng+ma86H7AgMBAAECggEAKxpdalKMbC5K4o+EgwaepPIcwMnplGeMFe8glD2VcgC6\nhOs42oCJ0hIsOKTuA+0fkYqAvRUS8KgicI05gPbVXnRh39d7X7GELt4zHCmM7blY\nekmA1ydza70T+9fT/ZrbYfkFd/jp8Hl+RMT+n8D8bXzoAygBDjHFSzFXI+ISHuhV\nTApyuFx+kVvI0/Hx6bRVJbuNjVM/O1MxwK4LIvPiGoDcI9XEqqDwZlbN7IsySsjZ\nWVVPCksiXP2WmevZ7pgYKCoR/uqNwR37w8kq8EAYNvSimJZp8T6ju+06NaTXmwWF\ntGVJsEqSHtstyDZDBnW2q+C/qeZ9GIKnXSXDmthisQKBgQDcMqgAgNyA6Km1+B9h\n+pEreUj5moFO2cbFBu07nbVpcjysMt2hG+u+HD+NjU5LlfOPwWkcx+q5MDSnZ9N9\nC+Ot5KlNKA0+uXFCyo1lUGITylIzV6NAhgOiMU/28/DzdQYQrhYfco8RPHO8LSDj\n2j4oGF/IxTUOTjsnYIgQyCTEyQKBgQDNbNxlcRpsqSoEYvogTcCGhZG4ucWEGUrr\nScQQ0hOqwGxha5irV7vL8DBwTH71TE0UPaqXhmcCku13pIbjmo5qjZdO68N5e+1D\nHh4Dy5eIr32lYU/ycWrd816Cm8aJeOOPrCRP3fkwCdBUltSYa/m+bbfD00J+TZyW\nQTmEXHCmowKBgQCKu9PDtWy4P16lyrWjGqaaOGk08hakYmtsuaeAVyX0UMhPSiD/\nH8NQ3SVhfvUkhE6XdSlPu9l0Yh3al3zVHUeOyTGt7h0iNt5YUZvyiEmy5FcUCBRQ\nU984Mk+KbTmTelie67/+gkQHfQoCNoCxblCZHHpE2ZNK9xkn/xbbU+5umQKBgHYR\nIl8/cWOQmrCovoAAkC4A6O8V/rrc2p1+6SyNwXX7YI9hiv63zxz4sK5qmPGdaBPB\nGaI7QktNbSS9sDVyqHX/aT6X7OKO4qAX2EJwKmkKDBoYYx3CKBzm+qPwqlxq2cfC\ntaAdwVHl4hIsGoZ8UK8tWlg3vNjg/KWzWT6E7s4nAoGAWxBM0rLuCOLutfWJEgp7\nutQUJBKx9iqOAXIqTWmYMCarA1sYm18THIVq2clmu4/LTQJHWQN+6PC5QJk6sxMn\n6AczcA5NaQQI8BPHHuupbmznZ+7WWITdo88K7scagYKq17fPH0JsuPcRPLhCwWsQ\njSb/U95LMnkmOwzfwvmkmFg=\n-----END PRIVATE KEY-----\n",
+  "client_email": "replit-vertex-financial-agent@my-first-app-491201.iam.gserviceaccount.com",
+  "client_id": "109368121261460802745",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/replit-vertex-financial-agent%40my-first-app-491201.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
