@@ -1,0 +1,16 @@
+.replit
+replit.nix
+.local/
+.cache/
+.config/
+.upm/
+.agents/
+.breakpoints
+poetry.lock
+pyproject.toml
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pythonlibs/
+VENV.md
