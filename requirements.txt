@@ -16,4 +16,9 @@ numpy==1.24.1
 cryptography==38.0.4
 
 # Google Cloud Library
+flask
+gunicorn
 google-cloud-aiplatform
+requests
+beautifulsoup4
+lxml
