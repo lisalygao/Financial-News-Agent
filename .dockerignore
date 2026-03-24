@@ -14,3 +14,6 @@ __pycache__/
 *.pyo
 .pythonlibs/
 VENV.md
+*.json
+.env
+__pycache__/
