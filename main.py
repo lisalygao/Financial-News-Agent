@@ -7,37 +7,47 @@ from vertexai.generative_models import GenerativeModel
 
 app = Flask(__name__)
 
-# Initialize Vertex AI
 PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT")
-vertexai.init(project=PROJECT_ID, location="us-central1")
-model = GenerativeModel("gemini-1.5-flash")
+model = None
+
+def get_model():
+    global model
+    if model is None and PROJECT_ID:
+        vertexai.init(project=PROJECT_ID, location="us-central1")
+        model = GenerativeModel("gemini-1.5-flash")
+    return model
 
 def get_market_news():
     """Fetches the top 5 finance headlines from Google News RSS."""
     rss_url = "https://news.google.com/rss/search?q=stock+market+analysis&hl=en-US&gl=US&ceid=US:en"
-    response = requests.get(rss_url)
+    response = requests.get(rss_url, timeout=10)
     soup = BeautifulSoup(response.content, "xml")
     items = soup.find_all("item", limit=5)
     return [item.title.text for item in items]
 
 @app.route("/")
 def index():
-    headlines = get_market_news()
+    try:
+        headlines = get_market_news()
+    except Exception as e:
+        headlines = [f"Could not fetch headlines: {str(e)}"]
+
     headlines_str = "\n".join([f"- {h}" for h in headlines])
 
-    # The Prompt for Gemini
-    prompt = f"""
-    You are a professional financial analyst. Based on these headlines:
-    {headlines_str}
+    ai_response = "<p>AI Analyst unavailable — no Google Cloud project configured.</p>"
+    gemini = get_model()
+    if gemini:
+        prompt = f"""
+        You are a professional financial analyst. Based on these headlines:
+        {headlines_str}
 
-    Provide a 2-sentence market summary and a 'Vibe Check' (Bullish, Bearish, or Neutral).
-    Format the output as clean HTML.
-    """
-
-    try:
-        ai_response = model.generate_content(prompt).text
-    except Exception as e:
-        ai_response = f"<p>AI Analyst is offline: {str(e)}</p>"
+        Provide a 2-sentence market summary and a 'Vibe Check' (Bullish, Bearish, or Neutral).
+        Format the output as clean HTML.
+        """
+        try:
+            ai_response = gemini.generate_content(prompt).text
+        except Exception as e:
+            ai_response = f"<p>AI Analyst error: {str(e)}</p>"
 
     return render_template_string("""
     <!DOCTYPE html>
@@ -72,6 +82,10 @@ def index():
     </html>
     """, headlines=headlines, ai_analysis=ai_response)
 
+@app.route("/health")
+def health():
+    return {"status": "ok"}, 200
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
