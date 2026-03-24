@@ -23,7 +23,7 @@ def get_market_news():
 @app.route("/")
 def index():
     headlines = get_market_news()
-    headlines_str = "\n".join([f"- {h}" in headlines])
+    headlines_str = "\n".join([f"- {h}" for h in headlines])
 
     # The Prompt for Gemini
     prompt = f"""

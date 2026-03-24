@@ -17,7 +17,6 @@ cryptography==38.0.4
 
 # Google Cloud Library
 flask
-gunicorn
 google-cloud-aiplatform
 requests
 beautifulsoup4
