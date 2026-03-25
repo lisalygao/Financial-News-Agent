@@ -10,7 +10,7 @@ app = Flask(__name__)
 # Fallback Project ID
 PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT", "my-first-app-491201")
 vertexai.init(project=PROJECT_ID, location="us-central1")
-model = GenerativeModel("gemini-1.5-flash-002")
+model = GenerativeModel("gemini-2.5-flash")
 
 def get_market_news():
     try:
