@@ -14,7 +14,7 @@ def get_model():
     global model
     if model is None and PROJECT_ID:
         vertexai.init(project=PROJECT_ID, location="us-central1")
-        model = GenerativeModel("gemini-2.0-flash-lite")
+        model = GenerativeModel("gemini-2.5-flash")
     return model
 
 def get_market_news():
