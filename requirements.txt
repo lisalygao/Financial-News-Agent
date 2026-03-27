@@ -1,5 +1,4 @@
-# Root-level requirements — mirrors backend/requirements.txt
-# Used by GitHub, Vertex AI, and tooling that expects requirements at the project root.
+# Python dependencies — used by the Dockerfile and Vertex AI deployment.
 fastapi==0.110.0
 uvicorn[standard]==0.27.1
 psycopg2-binary==2.9.9
