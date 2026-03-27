@@ -75,23 +75,23 @@ def ai_generate_summary(headline: str) -> str:
 
 def ai_generate_analysis_steps(headline: str) -> list[str]:
     """
-    Return a list of 5 step-by-step reasoning strings used to reach the summary.
+    Return a list of 5 article highlight strings for the headline.
 
     --- Vertex AI Gemini replacement ---
     response = _model.generate_content(
-        f"For this financial headline, list exactly 5 numbered reasoning steps "
-        f"an analyst would use to evaluate its market impact. "
-        f"Output one step per line, no bullet points.\\n{headline}"
+        f"For this financial headline, list exactly 5 key article highlights "
+        f"as short, informative bullet points. "
+        f"Output one highlight per line, no bullet symbols.\\n{headline}"
     )
     lines = [l.strip() for l in response.text.strip().splitlines() if l.strip()]
     return lines[:5]
     """
     return [
-        "Identify the key market actors, sectors, and instruments mentioned.",
-        "Assess the macroeconomic backdrop and recent trend context.",
-        "Evaluate potential short-term price impact on major indices (S&P 500, Nasdaq).",
-        "Consider investor sentiment signals: trading volume, options activity, VIX.",
-        "Synthesise findings into an overall risk/reward outlook.",
+        "Key market sectors and instruments directly affected by this development.",
+        "Relevant macroeconomic context shaping the current market environment.",
+        "Potential short-term impact on major indices including S&P 500 and Nasdaq.",
+        "Investor sentiment indicators: trading volume, options activity, and volatility.",
+        "Overall risk/reward outlook based on the available information.",
     ]
 
 
@@ -116,7 +116,10 @@ def ai_get_sentiment(headline: str) -> dict:
         label = "Bullish" if score >= 60 else ("Bearish" if score <= 40 else "Neutral")
     return {{"label": label, "score": score}}
     """
-    score = random.randint(20, 80)
+    # Scale: 0 = Max Bearish (most negative), 100 = Max Bullish (most positive)
+    # Positive news → high score → Bullish
+    # Negative news → low score  → Bearish
+    score = random.randint(0, 100)
     label = "Bullish" if score >= 60 else ("Bearish" if score <= 40 else "Neutral")
     return {"label": label, "score": score}
 

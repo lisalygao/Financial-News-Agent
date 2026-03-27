@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from .database import get_conn, init_db
 from .ai_service import analyze_news
+from .email_service import send_welcome_email
 from .scheduler import start_scheduler, stop_scheduler
 
 
@@ -122,6 +123,7 @@ def subscribe(body: SubscribeRequest):
         conn.commit()
         cur.close()
         conn.close()
+        send_welcome_email(email)
         return {"success": True, "message": f"Welcome, {first}! You're subscribed."}
     except psycopg2.errors.UniqueViolation:
         raise HTTPException(status_code=409, detail="This email is already subscribed.")

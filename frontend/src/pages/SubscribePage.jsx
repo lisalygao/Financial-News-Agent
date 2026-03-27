@@ -1,10 +1,16 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 
 export default function SubscribePage() {
   const [form, setForm]       = useState({ first_name: '', last_name: '', email: '' })
   const [status, setStatus]   = useState(null)   // null | 'loading' | 'success' | 'error'
   const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    if (status !== 'success') return
+    const timer = setTimeout(() => setStatus(null), 2000)
+    return () => clearTimeout(timer)
+  }, [status])
 
   const handleChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
@@ -14,9 +20,9 @@ export default function SubscribePage() {
     setStatus('loading')
     setMessage('')
     try {
-      const { data } = await axios.post('/api/subscribe', form)
+      await axios.post('/api/subscribe', form)
       setStatus('success')
-      setMessage(data.message)
+      setMessage('Success! You are subscribed.')
       setForm({ first_name: '', last_name: '', email: '' })
     } catch (err) {
       setStatus('error')
