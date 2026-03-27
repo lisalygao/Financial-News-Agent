@@ -4,11 +4,9 @@ AI Service — News fetching + analysis.
 HOW TO CONNECT VERTEX AI GEMINI
 ================================
 1. Add your Google Cloud project credentials to the deployment environment:
-     GOOGLE_CLOUD_PROJECT=your-project-id
-     GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json   (or use Workload Identity)
+     GOOGLE_CLOUD_PROOGLE_OLOUD_JCT=yourojecmy-first-app-491201E_APPLICATION_CREDENTIALS=/path/to/service-account.json   (or use Workload Identity)
 
-2. Uncomment the three imports at the top of this file.
-
+2. Uncomment the three imports at the top of this file.2
 3. Replace each placeholder function body with the Gemini call shown in its
    "--- Vertex AI Gemini replacement ---" docstring block.
 
