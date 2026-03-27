@@ -1,31 +1,33 @@
-# ── Stage 1: Build React frontend ─────────────────────────────────────────────
+# STAGE 1: Build the React Frontend
 FROM node:20-slim AS frontend-builder
-
 WORKDIR /app/frontend
-
-# Copy lock file first so Docker layer caching works correctly
-COPY frontend/package.json frontend/package-lock.json ./
-
-# npm ci uses the exact versions in package-lock.json — reproducible and fast
-RUN npm ci --no-audit --no-fund
-
+# Copy only the files needed to install dependencies
+COPY frontend/package*.json ./
+RUN npm ci --silent
+# Copy the rest of the frontend and build it
 COPY frontend/ ./
 RUN npm run build
 
-
-# ── Stage 2: FastAPI runtime ───────────────────────────────────────────────────
+# STAGE 2: Build the Python Backend
 FROM python:3.11-slim
-
 WORKDIR /app
 
-COPY requirements.txt ./
+# Install system dependencies for PostgreSQL (psycopg2)
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy backend dependencies and install
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY backend/ ./backend/
-COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
+# Copy the backend code
+COPY . .
+
+# Copy the built frontend from Stage 1 into the backend's static folder
+# (Adjust 'backend/static' to match where your FastAPI/Flask looks for files)
+COPY --from=frontend-builder /app/frontend/dist ./backend/static
 
 ENV PORT=8080
-EXPOSE 8080
-
-# FastAPI serves the pre-built React SPA + all /api/* routes
-CMD exec uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT}"]
