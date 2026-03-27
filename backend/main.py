@@ -19,8 +19,17 @@ from .scheduler import start_scheduler, stop_scheduler
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
-    start_scheduler()
+    try:
+        init_db()
+    except Exception as exc:
+        # Don't crash on startup if DATABASE_URL is missing or unreachable.
+        # Cloud Run health checks will pass; individual endpoints return HTTP 500
+        # until the variable is configured in the Cloud Run service settings.
+        print(f"WARNING: Database initialization skipped — {exc}")
+    try:
+        start_scheduler()
+    except Exception as exc:
+        print(f"WARNING: Scheduler failed to start — {exc}")
     yield
     stop_scheduler()   # graceful shutdown — called on SIGTERM (Cloud Run)
 
