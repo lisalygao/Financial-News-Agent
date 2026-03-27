@@ -131,6 +131,31 @@ def subscribe(body: SubscribeRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ── Unsubscribe endpoint ──────────────────────────────────────────────────────
+
+@app.get("/api/unsubscribe")
+def unsubscribe(email: str):
+    """Remove a subscriber by email. Called when they click the email link."""
+    email = email.strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="Email address is required.")
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("DELETE FROM subscribers WHERE email = %s", (email,))
+        deleted = cur.rowcount
+        conn.commit()
+        cur.close()
+        conn.close()
+        if deleted == 0:
+            raise HTTPException(status_code=404, detail="This email is not subscribed.")
+        return {"success": True, "message": f"{email} has been unsubscribed."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ── Archive endpoint ──────────────────────────────────────────────────────────
 
 @app.get("/api/archive")

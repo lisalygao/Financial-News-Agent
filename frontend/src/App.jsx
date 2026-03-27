@@ -3,6 +3,7 @@ import Header from './components/Header'
 import NewsPage from './pages/NewsPage'
 import SubscribePage from './pages/SubscribePage'
 import ArchivePage from './pages/ArchivePage'
+import UnsubscribePage from './pages/UnsubscribePage'
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
           <Route path="/" element={<NewsPage />} />
           <Route path="/subscribe" element={<SubscribePage />} />
           <Route path="/archive" element={<ArchivePage />} />
+          <Route path="/unsubscribe" element={<UnsubscribePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
