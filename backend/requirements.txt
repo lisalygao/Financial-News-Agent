@@ -8,3 +8,5 @@ apscheduler==3.10.4
 pytz==2024.1
 pydantic==2.6.3
 python-multipart==0.0.9
+# Uncomment when wiring to Vertex AI Gemini:
+# google-cloud-aiplatform>=1.49.0
