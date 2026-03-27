@@ -4,7 +4,14 @@ import psycopg2.extras
 
 
 def get_conn():
-    return psycopg2.connect(os.environ["DATABASE_URL"])
+    db_url = os.environ.get("DATABASE_URL")
+    if not db_url:
+        raise RuntimeError(
+            "DATABASE_URL environment variable is not set. "
+            "Add it in your Vertex AI / Cloud Run service configuration "
+            "pointing to your PostgreSQL instance."
+        )
+    return psycopg2.connect(db_url)
 
 
 def init_db():

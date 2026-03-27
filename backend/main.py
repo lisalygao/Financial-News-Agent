@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from .database import get_conn, init_db
 from .ai_service import analyze_news
-from .scheduler import start_scheduler
+from .scheduler import start_scheduler, stop_scheduler
 
 
 # ── Startup / shutdown ────────────────────────────────────────────────────────
@@ -22,6 +22,7 @@ async def lifespan(app: FastAPI):
     init_db()
     start_scheduler()
     yield
+    stop_scheduler()   # graceful shutdown — called on SIGTERM (Cloud Run)
 
 
 app = FastAPI(title="Market News API", version="1.0.0", lifespan=lifespan)

@@ -57,3 +57,10 @@ def start_scheduler():
         )
         _scheduler.start()
         print("[Scheduler] Started — daily fetch at 07:00 PST.")
+
+
+def stop_scheduler():
+    """Shut down the scheduler gracefully on container SIGTERM (Cloud Run)."""
+    if _scheduler.running:
+        _scheduler.shutdown(wait=False)
+        print("[Scheduler] Stopped.")
