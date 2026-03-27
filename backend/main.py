@@ -142,12 +142,21 @@ def health():
 
 
 # ── Serve React in production (Docker) ───────────────────────────────────────
-
-DIST = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
+# Look for 'static' folder which we created in the Dockerfile
+# instead of reaching back into '../frontend/dist'
+DIST = os.path.join(os.path.dirname(__file__), "static")
 
 if os.path.exists(DIST):
+    # Serve the assets (JS/CSS)
     app.mount("/assets", StaticFiles(directory=os.path.join(DIST, "assets")), name="assets")
 
+    # Catch-all route to serve index.html for the React SPA
     @app.get("/{full_path:path}")
     def serve_spa(full_path: str):
-        return FileResponse(os.path.join(DIST, "index.html"))
+        index_path = os.path.join(DIST, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+        return {"error": "Frontend build not found"}
+else:
+    # If the folder is missing, don't crash, just log it
+    print(f"WARNING: Static directory not found at {DIST}")
