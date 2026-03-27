@@ -4,17 +4,14 @@ import psycopg2.extras
 
 
 def get_conn():
-    # If running on Cloud Run, use the Unix socket
-    if os.environ.get("K_SERVICE"): 
-        # Replace these with your actual DB credentials
-        return psycopg2.connect(
-            database="market_news",
-            user="postgres",
-            password="your-password",
-            host=f"/cloudsql/{os.environ.get('CLOUD_SQL_CONNECTION_NAME')}"
+    db_url = os.environ.get("DATABASE_URL")
+    if not db_url:
+        raise RuntimeError(
+            "DATABASE_URL environment variable is not set. "
+            "Add it in your Cloud Run service → Edit & Deploy New Revision "
+            "→ Variables & Secrets."
         )
-    # Otherwise, use local/Replit settings
-    return psycopg2.connect(os.environ.get("DATABASE_URL"))
+    return psycopg2.connect(db_url)
 
 
 def init_db():
