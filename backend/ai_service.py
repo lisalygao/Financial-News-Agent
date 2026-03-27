@@ -3,12 +3,15 @@ AI Service — News fetching + analysis.
 
 HOW TO CONNECT VERTEX AI GEMINI
 ================================
-1. Add your Google Cloud project credentials to the deployment environment:
-     GOOGLE_CLOUD_PROOGLE_OLOUD_JCT=yourojecmy-first-app-491201E_APPLICATION_CREDENTIALS=/path/to/service-account.json   (or use Workload Identity)
+1. In Cloud Run, set these two environment variables:
+     GOOGLE_CLOUD_PROJECT  = your-gcp-project-id   (e.g. "my-project-123456")
+     GOOGLE_CLOUD_LOCATION = us-central1            (optional, defaults to us-central1)
+   Cloud Run's service account also needs the "Vertex AI User" IAM role.
 
-2. Uncomment the three imports at the top of this file.2
-3. Replace each placeholder function body with the Gemini call shown in its
-   "--- Vertex AI Gemini replacement ---" docstring block.
+2. Uncomment the ENTIRE block below (lines marked with #).
+
+3. In each placeholder function, replace the function body with the Gemini
+   call shown inside its "--- Vertex AI Gemini replacement ---" docstring.
 
 That's it — no other files need to change.
 """
@@ -18,7 +21,7 @@ import random
 import requests
 from bs4 import BeautifulSoup
 
-# ── Uncomment these three lines when wiring to Vertex AI ──────────────────────
+# ── Uncomment this entire block when wiring to Vertex AI ──────────────────────
 # import os
 # import vertexai
 # from vertexai.generative_models import GenerativeModel
