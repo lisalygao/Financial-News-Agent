@@ -6,7 +6,7 @@ import psycopg2
 import psycopg2.extras
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -133,12 +133,49 @@ def subscribe(body: SubscribeRequest):
 
 # ── Unsubscribe endpoint ──────────────────────────────────────────────────────
 
+def _html_page(title: str, heading: str, body: str, color: str = "#16a34a") -> HTMLResponse:
+    """Return a self-contained HTML page — no React app needed."""
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>{title}</title>
+      <style>
+        body {{ font-family: Arial, sans-serif; background: #f1f5f9;
+                display: flex; align-items: center; justify-content: center;
+                min-height: 100vh; margin: 0; }}
+        .card {{ background: #fff; border-radius: 12px; padding: 48px 40px;
+                 max-width: 480px; width: 90%; text-align: center;
+                 box-shadow: 0 4px 24px rgba(0,0,0,.08); }}
+        .icon {{ font-size: 56px; margin-bottom: 16px; }}
+        h1 {{ color: {color}; font-size: 22px; margin: 0 0 12px; }}
+        p  {{ color: #64748b; font-size: 15px; line-height: 1.6; margin: 0; }}
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <div class="icon">{heading}</div>
+        {body}
+      </div>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html)
+
+
 @app.get("/api/unsubscribe")
-def unsubscribe(email: str):
-    """Remove a subscriber by email. Called when they click the email link."""
+def unsubscribe(email: str = ""):
+    """Remove a subscriber by email. Returns a standalone HTML confirmation page."""
     email = email.strip().lower()
     if not email:
-        raise HTTPException(status_code=400, detail="Email address is required.")
+        return _html_page(
+            "Error", "⚠️",
+            "<h1 style='color:#dc2626'>Missing email</h1>"
+            "<p>No email address was provided. Please use the unsubscribe link from your confirmation email.</p>",
+            color="#dc2626",
+        )
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -147,13 +184,27 @@ def unsubscribe(email: str):
         conn.commit()
         cur.close()
         conn.close()
-        if deleted == 0:
-            raise HTTPException(status_code=404, detail="This email is not subscribed.")
-        return {"success": True, "message": f"{email} has been unsubscribed."}
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return _html_page(
+            "Error", "⚠️",
+            f"<h1 style='color:#dc2626'>Something went wrong</h1><p>{e}</p>",
+            color="#dc2626",
+        )
+
+    if deleted == 0:
+        return _html_page(
+            "Not found", "🤔",
+            "<h1 style='color:#d97706'>Email not found</h1>"
+            f"<p><strong>{email}</strong> is not currently subscribed.</p>",
+            color="#d97706",
+        )
+
+    return _html_page(
+        "Unsubscribed", "✅",
+        f"<h1>You're unsubscribed</h1>"
+        f"<p><strong>{email}</strong> has been removed.<br/>"
+        f"You will no longer receive Market News Daily emails.</p>",
+    )
 
 
 # ── Archive endpoint ──────────────────────────────────────────────────────────

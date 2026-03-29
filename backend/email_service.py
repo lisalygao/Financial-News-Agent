@@ -41,7 +41,7 @@ def send_welcome_email(to_email: str) -> None:
     Currently a placeholder — wire up SendGrid or Gmail using the instructions above.
     """
     subject = "Subscription Confirmed — Market News Daily"
-    unsubscribe_link = f"{UNSUBSCRIBE_BASE_URL}/unsubscribe?email={to_email}"
+    unsubscribe_link = f"{UNSUBSCRIBE_BASE_URL}/api/unsubscribe?email={to_email}"
 
     body_html = f"""
     <html>
