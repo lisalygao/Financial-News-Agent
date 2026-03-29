@@ -64,8 +64,23 @@ def send_welcome_email(to_email: str) -> None:
     </html>
     """
 
-    # ── Placeholder: log instead of sending ───────────────────────────────────
-    print(f"[EMAIL PLACEHOLDER] Would send welcome email to: {to_email}")
-    print(f"  Subject : {subject}")
-    print(f"  Unsub   : {unsubscribe_link}")
-    # ── Replace the three lines above with your provider SDK call ─────────────
+    import smtplib, ssl
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+
+    gmail_address  = os.environ.get("GMAIL_ADDRESS")
+    gmail_password = os.environ.get("GMAIL_APP_PASSWORD")
+
+    if not gmail_address or not gmail_password:
+        print("WARNING: GMAIL_ADDRESS or GMAIL_APP_PASSWORD not set — email not sent.")
+        return
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"]    = gmail_address
+    msg["To"]      = to_email
+    msg.attach(MIMEText(body_html, "html"))
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ssl.create_default_context()) as server:
+        server.login(gmail_address, gmail_password)
+        server.send_message(msg)
