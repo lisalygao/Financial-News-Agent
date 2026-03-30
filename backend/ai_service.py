@@ -21,7 +21,7 @@ import random
 import requests
 from bs4 import BeautifulSoup
 
-# ── Uncomment this entire block when wiring to Vertex AI ──────────────────────
+# -- Uncomment this entire block when wiring to Vertex AI ----------------------
 # import os
 # import vertexai
 # from vertexai.generative_models import GenerativeModel
@@ -31,10 +31,10 @@ from bs4 import BeautifulSoup
 #     location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
 # )
 # _model = GenerativeModel("gemini-2.5-flash")
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 
-# ── RSS Fetcher ───────────────────────────────────────────────────────────────
+# -- RSS Fetcher ---------------------------------------------------------------
 
 # Direct financial news RSS feeds — real article URLs, no Google redirects.
 _RSS_FEEDS = [
@@ -110,7 +110,7 @@ def fetch_rss_news() -> list[dict]:
     return collected[:5]
 
 
-# ── AI Placeholder Functions ──────────────────────────────────────────────────
+# -- AI Placeholder Functions --------------------------------------------------
 # Each function below is ready for a Vertex AI Gemini drop-in replacement.
 # The exact code to use is shown inside each docstring.
 
@@ -184,7 +184,7 @@ def ai_get_sentiment(headline: str) -> dict:
     return {"label": label, "score": score}
 
 
-# ── Main pipeline (called by scheduler + /api/news/refresh) ───────────────────
+# -- Main pipeline (called by scheduler + /api/news/refresh) -------------------
 
 def analyze_news() -> list[dict]:
     """
