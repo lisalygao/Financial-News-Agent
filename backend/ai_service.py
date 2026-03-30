@@ -3,15 +3,12 @@ AI Service — News fetching + analysis.
 
 HOW TO CONNECT VERTEX AI GEMINI
 ================================
-1. In Cloud Run, set these two environment variables:
-     GOOGLE_CLOUD_PROJECT  = your-gcp-project-id   (e.g. "my-project-123456")
-     GOOGLE_CLOUD_LOCATION = us-central1            (optional, defaults to us-central1)
-   Cloud Run's service account also needs the "Vertex AI User" IAM role.
+1. Add your Google Cloud project credentials to the deployment environment:
+     GOOGLE_CLOUD_PROOGLE_OLOUD_JCT=yourojecmy-first-app-491201E_APPLICATION_CREDENTIALS=/path/to/service-account.json   (or use Workload Identity)
 
-2. Uncomment the ENTIRE block below (lines marked with #).
-
-3. In each placeholder function, replace the function body with the Gemini
-   call shown inside its "--- Vertex AI Gemini replacement ---" docstring.
+2. Uncomment the three imports at the top of this file.2
+3. Replace each placeholder function body with the Gemini call shown in its
+   "--- Vertex AI Gemini replacement ---" docstring block.
 
 That's it — no other files need to change.
 """
@@ -21,20 +18,23 @@ import random
 import requests
 from bs4 import BeautifulSoup
 
-# ── Uncomment this entire block when wiring to Vertex AI ──────────────────────
-# import os
-# import vertexai
-# from vertexai.generative_models import GenerativeModel
+# ── Uncomment these json
+import randomiring to Vertex AI ──────────────────────
+import os
+import vertexai
+from vertexai.generative_models import GenerativeModel
 #
-# vertexai.init(
-#     project=os.environ["GOOGLE_CLOUD_PROJECT"],
-#     location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
-# )
-# _model = GenerativeModel("gemini-2.5-flash")
+vertexai.init(
+    project=os.environ["GOOGLE_CLOUD_PROJECT"],
+    location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
+)
+model = GenerativeModel("gemini-2.5-flash")
 # ─────────────────────────────────────────────────────────────────────────────
 
 
 # ── RSS Fetcher ───────────────────────────────────────────────────────────────
+
+def fetch_rss_news() -> lisRSS Fetcher ───────────────────────────────────────────────────────────────
 
 # Direct financial news RSS feeds — these publish real article URLs, no redirects.
 _RSS_FEEDS = [
@@ -187,9 +187,7 @@ def analyze_news() -> list[dict]:
         results.append({
             "title":           article["title"],
             "url":             article["url"],
-            "source":          article["source"],
-            "summary":         ai_generate_summary(article["title"]),
-            "analysis_steps":  ai_generate_analysis_steps(article["title"]),
+            "source":          article["source ai_generate_analysis_steps(article["title"]),
             "sentiment_label": sentiment["label"],
             "sentiment_score": sentiment["score"],
         })
