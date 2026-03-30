@@ -11,6 +11,7 @@ import pytz
 
 from .ai_service import analyze_news
 from .database import get_conn
+from .email_service import send_daily_digest
 
 _scheduler = BackgroundScheduler()
 
@@ -43,6 +44,10 @@ def _fetch_and_store():
         cur.close()
         conn.close()
         print(f"[Scheduler] Stored {len(results)} news items.")
+
+        # Send the daily digest to all subscribers
+        send_daily_digest(results)
+
     except Exception as e:
         print(f"[Scheduler] Error: {e}")
 

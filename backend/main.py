@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from .database import get_conn, init_db
 from .ai_service import analyze_news
-from .email_service import send_welcome_email
+from .email_service import send_welcome_email, send_daily_digest
 from .scheduler import start_scheduler, stop_scheduler
 
 
@@ -206,6 +206,39 @@ def unsubscribe(email: str = ""):
         f"<p><strong>{email}</strong> has been removed.<br/>"
         f"You will no longer receive Market News Daily emails.</p>",
     )
+
+
+# ── Digest test endpoint ──────────────────────────────────────────────────────
+
+@app.post("/api/digest/send")
+def trigger_digest():
+    """
+    Manually send today's digest to all subscribers right now.
+    Useful for testing before the 7 AM scheduler fires.
+    Fetches the latest 5 news items from the DB and emails them out.
+    """
+    try:
+        conn = get_conn()
+        cur  = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            "SELECT title, url, source, summary, sentiment_label, sentiment_score "
+            "FROM news_items ORDER BY fetched_at DESC LIMIT 5"
+        )
+        items = [dict(r) for r in cur.fetchall()]
+        cur.close()
+        conn.close()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"DB error: {e}")
+
+    if not items:
+        raise HTTPException(status_code=404, detail="No news items in database — run Refresh first.")
+
+    try:
+        send_daily_digest(items)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Email error: {e}")
+
+    return {"success": True, "message": f"Digest sent to all subscribers using {len(items)} news items."}
 
 
 # ── Archive endpoint ──────────────────────────────────────────────────────────
