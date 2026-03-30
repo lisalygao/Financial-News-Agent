@@ -36,32 +36,65 @@ from bs4 import BeautifulSoup
 
 # ── RSS Fetcher ───────────────────────────────────────────────────────────────
 
-def fetch_rss_news() -> list[dict]:
-    """Fetch the top 5 financial headlines from Google News RSS."""
-    url = (
-        "https://news.google.com/rss/search"
-        "?q=stock+market+financial+news&hl=en-US&gl=US&ceid=US:en"
+# Direct financial news RSS feeds — these publish real article URLs, no redirects.
+_RSS_FEEDS = [
+    ("Yahoo Finance",  "https://finance.yahoo.com/rss/topfinstories"),
+    ("CNBC",           "https://www.cnbc.com/id/100003114/device/rss/rss.html"),
+    ("MarketWatch",    "https://feeds.marketwatch.com/marketwatch/topstories/"),
+    ("Reuters",        "https://feeds.reuters.com/reuters/businessNews"),
+    ("Investing.com",  "https://www.investing.com/rss/news.rss"),
+]
+
+_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     )
-    response = requests.get(url, timeout=10)
-    soup = BeautifulSoup(response.content, "xml")
-    items = soup.find_all("item", limit=5)
-    articles = []
-    for item in items:
-        title = item.title.get_text(strip=True) if item.title else "No title"
+}
 
-        # <link> is the canonical article URL in RSS 2.0
-        link_el = item.find("link")
-        link = link_el.get_text(strip=True) if link_el and link_el.get_text(strip=True) else ""
-        if not link:
-            guid = item.find("guid")
-            link = guid.get_text(strip=True) if guid else "#"
 
-        # <source> holds the publisher name (e.g. "Wall Street Journal")
-        source_el = item.find("source")
-        source = source_el.get_text(strip=True) if source_el else ""
+def _fetch_feed(name: str, feed_url: str, limit: int) -> list[dict]:
+    """Fetch up to `limit` articles from a single RSS feed."""
+    try:
+        r = requests.get(feed_url, timeout=8, headers=_HEADERS)
+        soup = BeautifulSoup(r.content, "xml")
+        articles = []
+        for item in soup.find_all("item", limit=limit):
+            title = item.title.get_text(strip=True) if item.title else ""
+            if not title:
+                continue
 
-        articles.append({"title": title, "url": link, "source": source})
-    return articles
+            # <link> in direct RSS feeds is the real article URL
+            link_el = item.find("link")
+            url = link_el.get_text(strip=True) if link_el else ""
+            if not url:
+                guid = item.find("guid")
+                url = guid.get_text(strip=True) if guid else ""
+            # Reject any google.com redirects that slipped through
+            if not url or "google.com" in url:
+                continue
+
+            articles.append({"title": title, "url": url, "source": name})
+        return articles
+    except Exception as e:
+        print(f"[RSS] Failed to fetch {name}: {e}")
+        return []
+
+
+def fetch_rss_news() -> list[dict]:
+    """
+    Fetch the top 5 financial headlines from direct publisher RSS feeds.
+    Tries each feed in order and stops once 5 articles are collected.
+    """
+    collected: list[dict] = []
+    for name, feed_url in _RSS_FEEDS:
+        if len(collected) >= 5:
+            break
+        needed = 5 - len(collected)
+        articles = _fetch_feed(name, feed_url, limit=needed)
+        collected.extend(articles[:needed])
+
+    return collected[:5]
 
 
 # ── AI Placeholder Functions ──────────────────────────────────────────────────
