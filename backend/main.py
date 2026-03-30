@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 import psycopg2
 import psycopg2.extras
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -98,6 +98,64 @@ def refresh_news():
         conn.close()
         return {"success": True, "count": len(results)}
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/scheduler/daily")
+def scheduler_daily(request: Request):
+    """
+    Cloud Scheduler webhook — fetches news, stores it, and emails all subscribers.
+
+    This endpoint is the production solution for Cloud Run, where the in-process
+    APScheduler cannot be relied on because Cloud Run scales to zero.
+
+    Set up in Google Cloud Scheduler:
+      - Schedule:  0 7 * * *  (every day at 07:00)
+      - Timezone:  America/Los_Angeles (PST/PDT)
+      - URL:       https://your-app.run.app/api/scheduler/daily
+      - Method:    POST
+      - Auth header: Authorization: Bearer <SCHEDULER_SECRET>
+
+    Set SCHEDULER_SECRET as an environment variable in Cloud Run.
+    Leave it unset (or empty) to skip auth — fine for dev/testing.
+    """
+    # Optional bearer-token auth to prevent unauthorised triggers
+    secret = os.environ.get("SCHEDULER_SECRET", "")
+    if secret:
+        auth = request.headers.get("Authorization", "")
+        if auth != f"Bearer {secret}":
+            raise HTTPException(status_code=401, detail="Unauthorized")
+
+    print("[Scheduler/daily] Triggered via HTTP — fetching news...")
+    try:
+        results = analyze_news()
+        conn = get_conn()
+        cur = conn.cursor()
+        for r in results:
+            cur.execute(
+                """
+                INSERT INTO news_items
+                    (title, url, source, summary, analysis_steps, sentiment_label, sentiment_score)
+                VALUES (%s, %s, %s, %s, %s::jsonb, %s, %s)
+                """,
+                (
+                    r["title"],
+                    r["url"],
+                    r.get("source", ""),
+                    r["summary"],
+                    json.dumps(r["analysis_steps"]),
+                    r["sentiment_label"],
+                    r["sentiment_score"],
+                ),
+            )
+        conn.commit()
+        cur.close()
+        conn.close()
+        print(f"[Scheduler/daily] Stored {len(results)} items. Sending digest...")
+        send_daily_digest(results)
+        return {"success": True, "items": len(results)}
+    except Exception as e:
+        print(f"[Scheduler/daily] Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
