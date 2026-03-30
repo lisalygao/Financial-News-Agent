@@ -299,6 +299,21 @@ def trigger_digest():
     return {"success": True, "message": f"Digest sent to all subscribers using {len(items)} news items."}
 
 
+# ── Test email endpoint ───────────────────────────────────────────────────────
+
+class TestEmailRequest(BaseModel):
+    email: str
+
+@app.post("/api/email/test")
+def send_test_email(req: TestEmailRequest):
+    """Send a test welcome email to the given address."""
+    try:
+        send_welcome_email(req.email)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Email error: {e}")
+    return {"success": True, "message": f"Test email sent to {req.email}"}
+
+
 # ── Archive endpoint ──────────────────────────────────────────────────────────
 
 @app.get("/api/archive")
