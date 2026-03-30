@@ -16,6 +16,7 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+venv (deactivated)/
 .pythonlibs/
 
 # Node artifacts (root-level — frontend has its own inside the image)

@@ -29,5 +29,10 @@ COPY . .
 # (Adjust 'backend/static' to match where your FastAPI/Flask looks for files)
 COPY --from=frontend-builder /app/frontend/dist ./backend/static
 
+# Verify the app imports cleanly at build time — catches crashes before deployment.
+RUN python -c "import backend.main; print('Import check passed')"
+
 ENV PORT=8080
-CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT}"]
+# exec ensures uvicorn receives SIGTERM directly (graceful Cloud Run shutdown).
+# ${PORT:-8080} uses Cloud Run's injected PORT, falling back to 8080.
+CMD ["sh", "-c", "exec uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8080} --workers 1"]

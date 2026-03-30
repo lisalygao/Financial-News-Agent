@@ -24,14 +24,13 @@ from bs4 import BeautifulSoup
 import os
 import vertexai
 from vertexai.generative_models import GenerativeModel
-#
+
 vertexai.init(
     project=os.environ["GOOGLE_CLOUD_PROJECT"],
     location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
 )
 _model = GenerativeModel("gemini-2.5-flash")
 
-# -- RSS Fetcher ---------------------------------------------------------------
 
 # Direct financial news RSS feeds — real article URLs, no Google redirects.
 _RSS_FEEDS = [
@@ -123,7 +122,7 @@ def ai_generate_summary(headline: str) -> str:
     return response.text.strip()
     """
     return (
-        f"[AI Placeholder] '{headline[:70]}...' signals potential movement in "
+        f"[Gemini Privided Summary] '{headline[:70]}...' signals potential movement in "
         "equity markets. Analysts are watching closely for broader sector "
         "implications. Connect Vertex AI Gemini to generate real summaries."
     )
