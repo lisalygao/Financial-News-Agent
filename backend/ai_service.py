@@ -53,6 +53,11 @@ _HEADERS = {
 }
 
 
+def _is_absolute_url(url: str) -> bool:
+    """Return True only if url is a full http/https URL — never a relative path."""
+    return url.startswith("http://") or url.startswith("https://")
+
+
 def _fetch_feed(name: str, feed_url: str, limit: int) -> list[dict]:
     """Fetch up to `limit` articles from a single RSS feed."""
     try:
@@ -64,12 +69,23 @@ def _fetch_feed(name: str, feed_url: str, limit: int) -> list[dict]:
             if not title:
                 continue
 
+            # Always prefer <link>; only fall back to <guid> if it is a full URL
+            url = ""
             link_el = item.find("link")
-            url = link_el.get_text(strip=True) if link_el else ""
-            if not url:
+            if link_el:
+                url = link_el.get_text(strip=True)
+
+            if not _is_absolute_url(url):
                 guid = item.find("guid")
-                url = guid.get_text(strip=True) if guid else ""
-            if not url or "google.com" in url:
+                guid_text = guid.get_text(strip=True) if guid else ""
+                if _is_absolute_url(guid_text):
+                    url = guid_text
+                else:
+                    # guid is a relative path (e.g. Yahoo Finance) — skip article
+                    continue
+
+            # Drop any Google redirect links that slipped through
+            if "google.com" in url:
                 continue
 
             articles.append({"title": title, "url": url, "source": name})
