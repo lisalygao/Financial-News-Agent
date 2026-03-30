@@ -1,5 +1,5 @@
 """
-AI Service — News fetching + analysis.
+AI Service -- News fetching + analysis.
 
 HOW TO CONNECT VERTEX AI GEMINI
 ================================
@@ -8,31 +8,40 @@ HOW TO CONNECT VERTEX AI GEMINI
      GOOGLE_CLOUD_LOCATION = us-central1            (optional, defaults to us-central1)
    Cloud Run's service account also needs the "Vertex AI User" IAM role.
 
-2. Uncomment the ENTIRE block below (lines marked with #).
+2. Set GOOGLE_CLOUD_PROJECT in your Cloud Run service environment variables.
+   The app starts without it (using placeholder AI), and activates Vertex AI
+   automatically once the variable is present.
 
 3. In each placeholder function, replace the function body with the Gemini
    call shown inside its "--- Vertex AI Gemini replacement ---" docstring.
 
-That's it — no other files need to change.
+That's it -- no other files need to change.
 """
 
 import json
+import os
 import random
 import requests
 from bs4 import BeautifulSoup
 
-import os
-import vertexai
-from vertexai.generative_models import GenerativeModel
+# ---------------------------------------------------------------------------
+# Vertex AI initialisation -- CONDITIONAL on GOOGLE_CLOUD_PROJECT being set.
+# The app starts and runs normally without it, using placeholder functions.
+# Do NOT change os.environ.get() to os.environ[] -- that would crash on start.
+# ---------------------------------------------------------------------------
+_model = None
+_gcp_project = os.environ.get("GOOGLE_CLOUD_PROJECT")
+if _gcp_project:
+    import vertexai
+    from vertexai.generative_models import GenerativeModel
+    vertexai.init(
+        project=_gcp_project,
+        location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
+    )
+    _model = GenerativeModel("gemini-2.5-flash")
 
-vertexai.init(
-    project=os.environ["GOOGLE_CLOUD_PROJECT"],
-    location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
-)
-_model = GenerativeModel("gemini-2.5-flash")
 
-
-# Direct financial news RSS feeds — real article URLs, no Google redirects.
+# Direct financial news RSS feeds -- real article URLs, no Google redirects.
 _RSS_FEEDS = [
     ("Yahoo Finance", "https://finance.yahoo.com/rss/topfinstories"),
     ("CNBC",          "https://www.cnbc.com/id/100003114/device/rss/rss.html"),
@@ -50,7 +59,7 @@ _HEADERS = {
 
 
 def _is_absolute_url(url: str) -> bool:
-    """Return True only if url is a full http/https URL — never a relative path."""
+    """Return True only if url is a full http/https URL -- never a relative path."""
     return url.startswith("http://") or url.startswith("https://")
 
 
@@ -77,7 +86,7 @@ def _fetch_feed(name: str, feed_url: str, limit: int) -> list[dict]:
                 if _is_absolute_url(guid_text):
                     url = guid_text
                 else:
-                    # guid is a relative path (e.g. Yahoo Finance) — skip article
+                    # guid is a relative path (e.g. Yahoo Finance) -- skip article
                     continue
 
             # Drop any Google redirect links that slipped through
@@ -122,7 +131,7 @@ def ai_generate_summary(headline: str) -> str:
     return response.text.strip()
     """
     return (
-        f"[Gemini Privided Summary] '{headline[:70]}...' signals potential movement in "
+        f"[AI Placeholder] '{headline[:70]}' signals potential movement in "
         "equity markets. Analysts are watching closely for broader sector "
         "implications. Connect Vertex AI Gemini to generate real summaries."
     )
@@ -163,7 +172,7 @@ def ai_get_sentiment(headline: str) -> dict:
         f"Rate the market sentiment of this headline on a scale of 0-100 "
         f"(0=very bearish, 50=neutral, 100=very bullish). "
         f"Reply with JSON only, no markdown: "
-        f'{{\"label\": \"Bullish\", \"score\": 72}}\\n{headline}'
+        f'{{"label": "Bullish", "score": 72}}\\n{headline}'
     )
     import re
     match = re.search(r'\\{{.*?\\}}', response.text, re.DOTALL)
@@ -174,7 +183,6 @@ def ai_get_sentiment(headline: str) -> dict:
         label = "Bullish" if score >= 60 else ("Bearish" if score <= 40 else "Neutral")
     return {{"label": label, "score": score}}
     """
-    # Scale: 0 = Max Bearish (most negative), 100 = Max Bullish (most positive)
     score = random.randint(0, 100)
     label = "Bullish" if score >= 60 else ("Bearish" if score <= 40 else "Neutral")
     return {"label": label, "score": score}
