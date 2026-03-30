@@ -26,12 +26,13 @@ def _fetch_and_store():
             cur.execute(
                 """
                 INSERT INTO news_items
-                    (title, url, summary, analysis_steps, sentiment_label, sentiment_score)
-                VALUES (%s, %s, %s, %s::jsonb, %s, %s)
+                    (title, url, source, summary, analysis_steps, sentiment_label, sentiment_score)
+                VALUES (%s, %s, %s, %s, %s::jsonb, %s, %s)
                 """,
                 (
                     r["title"],
                     r["url"],
+                    r.get("source", ""),
                     r["summary"],
                     json.dumps(r["analysis_steps"]),
                     r["sentiment_label"],

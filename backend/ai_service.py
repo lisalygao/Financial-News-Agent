@@ -47,10 +47,20 @@ def fetch_rss_news() -> list[dict]:
     items = soup.find_all("item", limit=5)
     articles = []
     for item in items:
-        title = item.title.text if item.title else "No title"
-        guid  = item.find("guid")
-        link  = guid.text.strip() if guid and guid.text else "#"
-        articles.append({"title": title, "url": link})
+        title = item.title.get_text(strip=True) if item.title else "No title"
+
+        # <link> is the canonical article URL in RSS 2.0
+        link_el = item.find("link")
+        link = link_el.get_text(strip=True) if link_el and link_el.get_text(strip=True) else ""
+        if not link:
+            guid = item.find("guid")
+            link = guid.get_text(strip=True) if guid else "#"
+
+        # <source> holds the publisher name (e.g. "Wall Street Journal")
+        source_el = item.find("source")
+        source = source_el.get_text(strip=True) if source_el else ""
+
+        articles.append({"title": title, "url": link, "source": source})
     return articles
 
 
@@ -78,23 +88,26 @@ def ai_generate_summary(headline: str) -> str:
 
 def ai_generate_analysis_steps(headline: str) -> list[str]:
     """
-    Return a list of 5 article highlight strings for the headline.
+    Return a 6-8 sentence article summary as a list of sentences.
 
     --- Vertex AI Gemini replacement ---
     response = _model.generate_content(
-        f"For this financial headline, list exactly 5 key article highlights "
-        f"as short, informative bullet points. "
-        f"Output one highlight per line, no bullet symbols.\\n{headline}"
+        f"Write a 6-8 sentence objective summary of a financial news article "
+        f"with this headline. Cover the key facts, context, market implications, "
+        f"and any notable risks or opportunities. Write in clear, plain English "
+        f"suitable for a general investor audience.\\n\\nHeadline: {headline}"
     )
-    lines = [l.strip() for l in response.text.strip().splitlines() if l.strip()]
-    return lines[:5]
+    return [s.strip() for s in response.text.strip().split('. ') if s.strip()]
     """
     return [
-        "Key market sectors and instruments directly affected by this development.",
-        "Relevant macroeconomic context shaping the current market environment.",
-        "Potential short-term impact on major indices including S&P 500 and Nasdaq.",
-        "Investor sentiment indicators: trading volume, options activity, and volatility.",
-        "Overall risk/reward outlook based on the available information.",
+        f"This article covers recent developments related to: {headline[:80]}.",
+        "Markets have been closely monitoring this situation amid broader macroeconomic uncertainty.",
+        "Sector analysts note that such developments often trigger short-term volatility before prices stabilise.",
+        "Trading volumes and options activity suggest elevated investor interest in the affected securities.",
+        "The Federal Reserve's current policy stance adds an additional layer of complexity to the outlook.",
+        "Institutional investors are reassessing portfolio allocations in light of the latest information.",
+        "Retail investor sentiment, as measured by survey data and social media signals, remains mixed.",
+        "Connect Vertex AI Gemini to generate a real, article-specific summary here.",
     ]
 
 
@@ -120,8 +133,8 @@ def ai_get_sentiment(headline: str) -> dict:
     return {{"label": label, "score": score}}
     """
     # Scale: 0 = Max Bearish (most negative), 100 = Max Bullish (most positive)
-    # Positive news → high score → Bullish
-    # Negative news → low score  → Bearish
+    # Positive news → high score → Bullish → Green
+    # Negative news → low score  → Bearish → Red
     score = random.randint(0, 100)
     label = "Bullish" if score >= 60 else ("Bearish" if score <= 40 else "Neutral")
     return {"label": label, "score": score}
@@ -141,6 +154,7 @@ def analyze_news() -> list[dict]:
         results.append({
             "title":           article["title"],
             "url":             article["url"],
+            "source":          article["source"],
             "summary":         ai_generate_summary(article["title"]),
             "analysis_steps":  ai_generate_analysis_steps(article["title"]),
             "sentiment_label": sentiment["label"],

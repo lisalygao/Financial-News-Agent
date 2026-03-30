@@ -38,6 +38,11 @@ def init_db():
             fetched_at      TIMESTAMP DEFAULT NOW()
         )
     """)
+    # Add source column if it doesn't exist yet (safe migration)
+    cur.execute("""
+        ALTER TABLE news_items
+        ADD COLUMN IF NOT EXISTS source TEXT DEFAULT ''
+    """)
     conn.commit()
     cur.close()
     conn.close()
