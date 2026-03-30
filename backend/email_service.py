@@ -58,7 +58,7 @@ def _send_html_email(to_email: str, subject: str, body_html: str) -> None:
 
 def send_welcome_email(to_email: str) -> None:
     """Send a one-time confirmation email when a user subscribes."""
-    unsubscribe_link = f"{UNSUBSCRIBE_BASE_URL}/api/unsubscribe?email={to_email}"
+    unsubscribe_link = f"{UNSUBSCRIBE_BASE_URL}/unsubscribe?email={to_email}"
     subject = "Subscription Confirmed — Market News Daily"
 
     body_html = f"""
@@ -131,7 +131,7 @@ def _sentiment_badge(label: str, score: int) -> str:
 def _build_digest_html(items: list[dict], subscriber_email: str) -> str:
     """Render the full digest HTML for one subscriber."""
     today = date.today().strftime("%B %d, %Y")
-    unsubscribe_link = f"{UNSUBSCRIBE_BASE_URL}/api/unsubscribe?email={subscriber_email}"
+    unsubscribe_link = f"{UNSUBSCRIBE_BASE_URL}/unsubscribe?email={subscriber_email}"
 
     # Build one article block per news item
     article_blocks = ""

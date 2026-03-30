@@ -226,15 +226,10 @@ def _html_page(title: str, heading: str, body: str, color: str = "#16a34a") -> H
 
 @app.get("/api/unsubscribe")
 def unsubscribe(email: str = ""):
-    """Remove a subscriber by email. Returns a standalone HTML confirmation page."""
+    """Remove a subscriber by email. Returns JSON so the React UnsubscribePage can use it."""
     email = email.strip().lower()
     if not email:
-        return _html_page(
-            "Error", "⚠️",
-            "<h1 style='color:#dc2626'>Missing email</h1>"
-            "<p>No email address was provided. Please use the unsubscribe link from your confirmation email.</p>",
-            color="#dc2626",
-        )
+        raise HTTPException(status_code=400, detail="No email address provided.")
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -244,26 +239,12 @@ def unsubscribe(email: str = ""):
         cur.close()
         conn.close()
     except Exception as e:
-        return _html_page(
-            "Error", "⚠️",
-            f"<h1 style='color:#dc2626'>Something went wrong</h1><p>{e}</p>",
-            color="#dc2626",
-        )
+        raise HTTPException(status_code=500, detail=str(e))
 
     if deleted == 0:
-        return _html_page(
-            "Not found", "🤔",
-            "<h1 style='color:#d97706'>Email not found</h1>"
-            f"<p><strong>{email}</strong> is not currently subscribed.</p>",
-            color="#d97706",
-        )
+        raise HTTPException(status_code=404, detail=f"{email} is not currently subscribed.")
 
-    return _html_page(
-        "Unsubscribed", "✅",
-        f"<h1>You're unsubscribed</h1>"
-        f"<p><strong>{email}</strong> has been removed.<br/>"
-        f"You will no longer receive Market News Daily emails.</p>",
-    )
+    return {"success": True, "message": f"{email} has been successfully unsubscribed."}
 
 
 # ── Digest test endpoint ──────────────────────────────────────────────────────
