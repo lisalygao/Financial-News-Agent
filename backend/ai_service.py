@@ -21,18 +21,15 @@ import random
 import requests
 from bs4 import BeautifulSoup
 
-# -- Uncomment this entire block when wiring to Vertex AI ----------------------
-# import os
-# import vertexai
-# from vertexai.generative_models import GenerativeModel
+import os
+import vertexai
+from vertexai.generative_models import GenerativeModel
 #
-# vertexai.init(
-#     project=os.environ["GOOGLE_CLOUD_PROJECT"],
-#     location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
-# )
-# _model = GenerativeModel("gemini-2.5-flash")
-# -----------------------------------------------------------------------------
-
+vertexai.init(
+    project=os.environ["GOOGLE_CLOUD_PROJECT"],
+    location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
+)
+_model = GenerativeModel("gemini-2.5-flash")
 
 # -- RSS Fetcher ---------------------------------------------------------------
 
