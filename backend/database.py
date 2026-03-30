@@ -43,6 +43,16 @@ def init_db():
         ALTER TABLE news_items
         ADD COLUMN IF NOT EXISTS source TEXT DEFAULT ''
     """)
+    # One-time cleanup: fix any URLs that are missing the domain prefix.
+    # Old records stored only the raw Google News base64 ID (e.g. "CBMi9gFB...")
+    # instead of a full URL. Prepending the Google News base URL makes them
+    # clickable in a browser (Google redirects to the original article).
+    cur.execute("""
+        UPDATE news_items
+        SET url = 'https://news.google.com/rss/articles/' || url
+        WHERE url NOT LIKE 'http%'
+          AND url <> ''
+    """)
     conn.commit()
     cur.close()
     conn.close()
