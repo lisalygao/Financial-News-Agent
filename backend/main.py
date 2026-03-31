@@ -57,16 +57,33 @@ class SubscribeRequest(BaseModel):
 
 @app.get("/api/news")
 def get_news():
-    """Return the 5 most recently fetched news items."""
-    conn = get_conn()
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute(
-        "SELECT * FROM news_items ORDER BY fetched_at DESC LIMIT 5"
-    )
-    rows = [dict(r) for r in cur.fetchall()]
-    cur.close()
-    conn.close()
-    return {"items": rows}
+    """
+    Return the 5 most recently fetched news items.
+    Falls back to a live RSS fetch if the database is unavailable, so the
+    page always shows something rather than an error.
+    """
+    # 1. Try the database first (normal path)
+    try:
+        conn = get_conn()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute("SELECT * FROM news_items ORDER BY fetched_at DESC LIMIT 5")
+        rows = [dict(r) for r in cur.fetchall()]
+        cur.close()
+        conn.close()
+        if rows:
+            return {"items": rows, "source": "db"}
+        # DB connected but empty — fall through to live fetch below
+    except Exception as db_err:
+        print(f"[/api/news] DB unavailable ({db_err}), falling back to live RSS.")
+
+    # 2. Fallback: live RSS fetch (no DB needed, results not stored)
+    try:
+        from .ai_service import analyze_news
+        live_items = analyze_news()
+        return {"items": live_items, "source": "live"}
+    except Exception as rss_err:
+        print(f"[/api/news] Live RSS fetch also failed: {rss_err}")
+        return {"items": [], "source": "error"}
 
 
 @app.post("/api/news/refresh")
