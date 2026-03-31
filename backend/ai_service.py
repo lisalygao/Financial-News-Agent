@@ -39,7 +39,7 @@ if _gcp_project:
         project=_gcp_project,
         location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
     )
-    _model = GenerativeModel("gemini-1.5-flash")
+    _model = GenerativeModel("gemini-2.5-flash-preview-04-17")
 
 
 # Direct financial news RSS feeds -- real article URLs, no Google redirects.
