@@ -31,7 +31,8 @@ from bs4 import BeautifulSoup
 # Do NOT change os.environ.get() to os.environ[] -- that would crash on start.
 # ---------------------------------------------------------------------------
 _model = None
-_gcp_project = os.environ.get("GOOGLE_CLOUD_PROJECT")
+# Accept either GOOGLE_CLOUD_PROJECT (standard) or GCP_PROJECT_ID (common alias)
+_gcp_project = os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("GCP_PROJECT_ID")
 if _gcp_project:
     import vertexai
     from vertexai.generative_models import GenerativeModel
