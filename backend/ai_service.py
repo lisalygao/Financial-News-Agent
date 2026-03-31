@@ -21,6 +21,7 @@ That's it -- no other files need to change.
 import json
 import os
 import random
+import re
 import requests
 from bs4 import BeautifulSoup
 
@@ -38,7 +39,7 @@ if _gcp_project:
         project=_gcp_project,
         location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
     )
-    _model = GenerativeModel("gemini-2.5-flash")
+    _model = GenerativeModel("gemini-1.5-flash")
 
 
 # Direct financial news RSS feeds -- real article URLs, no Google redirects.
@@ -86,7 +87,6 @@ def _fetch_feed(name: str, feed_url: str, limit: int) -> list[dict]:
                 if _is_absolute_url(guid_text):
                     url = guid_text
                 else:
-                    # guid is a relative path (e.g. Yahoo Finance) -- skip article
                     continue
 
             # Drop any Google redirect links that slipped through
@@ -115,51 +115,58 @@ def fetch_rss_news() -> list[dict]:
     return collected[:5]
 
 
-# -- AI Placeholder Functions --------------------------------------------------
-# Each function below is ready for a Vertex AI Gemini drop-in replacement.
-# The exact code to use is shown inside each docstring.
+# -- AI Functions --------------------------------------------------------------
 
 def ai_generate_summary(headline: str) -> str:
     """
-    Generate a 2-3 sentence plain-English summary of the headline.
+    Generate a 1-sentence summary of the headline.
 
     --- Vertex AI Gemini replacement ---
     response = _model.generate_content(
-        f"Summarize this financial headline in 2-3 clear sentences for a "
-        f"general audience:\\n{headline}"
+        f"In one sentence, explain the significance of this financial headline "
+        f"for an investor: {headline}"
     )
     return response.text.strip()
     """
-    return (
-        f"[AI Placeholder] '{headline[:70]}' signals potential movement in "
-        "equity markets. Analysts are watching closely for broader sector "
-        "implications. Connect Vertex AI Gemini to generate real summaries."
+    if not _model:
+        return "[AI Placeholder] Gemini not connected. Connect Vertex AI to generate real summaries."
+    response = _model.generate_content(
+        f"In one sentence, explain the significance of this financial headline "
+        f"for an investor: {headline}"
     )
+    return response.text.strip()
 
 
 def ai_generate_analysis_steps(headline: str) -> list[str]:
     """
-    Return a 6-8 sentence article summary as a list of sentences.
+    Return 3 key highlights from the headline as a list of strings.
 
     --- Vertex AI Gemini replacement ---
-    response = _model.generate_content(
-        f"Write a 6-8 sentence objective summary of a financial news article "
-        f"with this headline. Cover the key facts, context, market implications, "
-        f"and any notable risks or opportunities. Write in clear, plain English "
-        f"suitable for a general investor audience.\\n\\nHeadline: {headline}"
+    prompt = (
+        f"Based on this financial headline: '{headline}', provide 3 brief "
+        f"bullet-point highlights explaining the potential impact or context. "
+        f"Return only the 3 points, no introductory text."
     )
-    return [s.strip() for s in response.text.strip().split('. ') if s.strip()]
+    response = _model.generate_content(prompt)
+    points = [re.sub(r'^[\\*\\-\\d\\.\\s]+', '', line).strip()
+              for line in response.text.strip().split('\\n') if line.strip()]
+    return points[:3]
     """
-    return [
-        f"This article covers recent developments related to: {headline[:80]}.",
-        "Markets have been closely monitoring this situation amid broader macroeconomic uncertainty.",
-        "Sector analysts note that such developments often trigger short-term volatility before prices stabilise.",
-        "Trading volumes and options activity suggest elevated investor interest in the affected securities.",
-        "The Federal Reserve's current policy stance adds an additional layer of complexity to the outlook.",
-        "Institutional investors are reassessing portfolio allocations in light of the latest information.",
-        "Retail investor sentiment, as measured by survey data and social media signals, remains mixed.",
-        "Connect Vertex AI Gemini to generate a real, article-specific summary here.",
-    ]
+    if not _model:
+        return [
+            f"This article covers recent developments related to: {headline[:80]}.",
+            "Markets have been closely monitoring this situation amid broader macroeconomic uncertainty.",
+            "Connect Vertex AI Gemini to generate real, article-specific highlights here.",
+        ]
+    prompt = (
+        f"Based on this financial headline: '{headline}', provide 3 brief "
+        f"bullet-point highlights explaining the potential impact or context. "
+        f"Return only the 3 points, no introductory text."
+    )
+    response = _model.generate_content(prompt)
+    points = [re.sub(r'^[\*\-\d\.\s]+', '', line).strip()
+              for line in response.text.strip().split('\n') if line.strip()]
+    return points[:3] if points else [headline]
 
 
 def ai_get_sentiment(headline: str) -> dict:
@@ -168,13 +175,15 @@ def ai_get_sentiment(headline: str) -> dict:
     Label is one of: "Bullish", "Neutral", "Bearish".
 
     --- Vertex AI Gemini replacement ---
-    response = _model.generate_content(
-        f"Rate the market sentiment of this headline on a scale of 0-100 "
-        f"(0=very bearish, 50=neutral, 100=very bullish). "
-        f"Reply with JSON only, no markdown: "
-        f'{{"label": "Bullish", "score": 72}}\\n{headline}'
+    prompt = (
+        f'Analyze the market sentiment of this headline: "{headline}"\\n'
+        f"RULES:\\n"
+        f"- 0-40 score: BEARISH (bad news, markets likely to drop)\\n"
+        f"- 41-59 score: NEUTRAL (mixed news)\\n"
+        f"- 60-100 score: BULLISH (good news, growth, earnings beats)\\n"
+        f'Return ONLY a JSON object: {{"label": "Bullish/Bearish/Neutral", "score": integer}}'
     )
-    import re
+    response = _model.generate_content(prompt)
     match = re.search(r'\\{{.*?\\}}', response.text, re.DOTALL)
     data = json.loads(match.group()) if match else {{}}
     label = data.get("label", "Neutral")
@@ -183,9 +192,30 @@ def ai_get_sentiment(headline: str) -> dict:
         label = "Bullish" if score >= 60 else ("Bearish" if score <= 40 else "Neutral")
     return {{"label": label, "score": score}}
     """
-    score = random.randint(0, 100)
-    label = "Bullish" if score >= 60 else ("Bearish" if score <= 40 else "Neutral")
-    return {"label": label, "score": score}
+    if not _model:
+        score = random.randint(0, 100)
+        label = "Bullish" if score >= 60 else ("Bearish" if score <= 40 else "Neutral")
+        return {"label": label, "score": score}
+
+    prompt = (
+        f'Analyze the market sentiment of this headline: "{headline}"\n'
+        f"RULES:\n"
+        f"- 0-40 score: BEARISH (bad news, markets likely to drop)\n"
+        f"- 41-59 score: NEUTRAL (mixed news)\n"
+        f"- 60-100 score: BULLISH (good news, growth, earnings beats)\n"
+        f'Return ONLY a JSON object: {{"label": "Bullish/Bearish/Neutral", "score": integer}}'
+    )
+    try:
+        response = _model.generate_content(prompt)
+        match = re.search(r'\{.*?\}', response.text, re.DOTALL)
+        data = json.loads(match.group()) if match else {}
+        label = data.get("label", "Neutral")
+        score = int(data.get("score", 50))
+        if label not in ("Bullish", "Neutral", "Bearish"):
+            label = "Bullish" if score >= 60 else ("Bearish" if score <= 40 else "Neutral")
+        return {"label": label, "score": score}
+    except Exception:
+        return {"label": "Neutral", "score": 50}
 
 
 # -- Main pipeline (called by scheduler + /api/news/refresh) -------------------

@@ -1,14 +1,24 @@
-# Python dependencies — used by the Dockerfile and Vertex AI deployment.
+# Web Framework & Server
 fastapi==0.110.0
 uvicorn[standard]==0.27.1
+pydantic==2.6.3
+python-multipart==0.0.9
+
+# Database (PostgreSQL)
 psycopg2-binary==2.9.9
+
+# Scraping
 requests==2.31.0
 beautifulsoup4==4.12.3
 lxml==5.1.0
+
+# Scheduling & Timezones
 apscheduler==3.10.4
 pytz==2024.1
-pydantic==2.6.3
-python-multipart==0.0.9
-# To enable Vertex AI Gemini — uncomment the line below AND
-# uncomment the 6 lines at the top of backend/ai_service.py:
-# google-cloud-aiplatform>=1.49.0
+
+# Google Cloud & AI (Required for Gemini)
+# google-cloud-aiplatform>=1.49.0  # Uncomment to enable Vertex AI Gemini
+
+# Email (Optional but recommended for easier Gmail handling)
+# If you want to use a simpler method, smtplib is built-in to Python.
+# fastapi-mail==1.4.1

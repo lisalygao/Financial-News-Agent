@@ -225,11 +225,10 @@ def _html_page(title: str, heading: str, body: str, color: str = "#16a34a") -> H
 
 
 @app.get("/api/unsubscribe")
-def unsubscribe(email: str = ""):
-    """Remove a subscriber by email. Returns JSON so the React UnsubscribePage can use it."""
-    email = email.strip().lower()
+def handle_unsubscribe(email: str):
+    """Remove a subscriber by email. Returns JSON so the React page can handle it."""
     if not email:
-        raise HTTPException(status_code=400, detail="No email address provided.")
+        raise HTTPException(status_code=400, detail="Email is required.")
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -238,13 +237,12 @@ def unsubscribe(email: str = ""):
         conn.commit()
         cur.close()
         conn.close()
+        if deleted:
+            return {"success": True, "message": f"{email} has been unsubscribed."}
+        return {"success": False, "message": "Email not found in subscriber list."}
     except Exception as e:
+        print(f"[Unsubscribe] Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
-    if deleted == 0:
-        raise HTTPException(status_code=404, detail=f"{email} is not currently subscribed.")
-
-    return {"success": True, "message": f"{email} has been successfully unsubscribed."}
 
 
 # ── Digest test endpoint ──────────────────────────────────────────────────────
